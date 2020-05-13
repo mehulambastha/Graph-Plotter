@@ -1,6 +1,9 @@
-'use strict';
+// * Program to plot line charts on the basis of (x,y) coordinates supplied in JSON format
+// * Made by: Mehul Ambastha
+// * Last updated: 11-5-2020
+// ? NEXT: how to make this whole application object oriented?
 
-// ? how to make this whole application object oriented?
+'use strict';
 
 let canvas = document.querySelector('#canvas');
 let ctx = canvas.getContext('2d');
@@ -15,7 +18,7 @@ xhr.addEventListener('load', fetchChartCoordinates); //fetchChartCoordinatesis a
 
 let chartPoints = {
 	coordinates: [],
-	lineCol: 'blue',
+	lineCol: prompt('What color do you want the line chart to be?'),
 };
 
 //  Function to fetch the data from local json file
@@ -46,39 +49,40 @@ function scaleCoordinates(data) {
 	return data; //returning the scaled coordinates
 }
 
+//the main function which actually draws the chart/graph
 function drawChart(coords) {
 	ctx.beginPath(); //beginning the path
 	ctx.lineWidth = 5; //setting the linewidth
-	ctx.strokeStyle = 'blue'; //setting stroke color
+	ctx.strokeStyle = chartPoints.lineCol; //setting stroke color
 
-	ctx.moveTo(50, canvas.height / 2); // moving the pen to the middle-y position in canvas
+	ctx.moveTo(0, canvas.height); // moving the pen to the middle-y position in canvas
 
 	ctx.font = '17px Fira Code '; // setting the  and typeface
 	ctx.fillStyle = 'black'; // setting the font color
 
 	// iterating through coords array (containing scaled coordinates) and drawing line to each of the passed coordinate
 	for (const [index] of coords.entries()) {
-		//const index holds the index of the current element during iteration
+		//*const index holds the index of the current element during iteration
 
 		// draws line to each of the coordinates passed
-		ctx.lineTo(coords[index].x, coords[index].y);
+		ctx.lineTo(coords[index].x, canvas.height - coords[index].y);
 
-		// * conditional to check whether the current element in iteration is the first element or not (it checks the index - 1 and sees if that exists)
+		// * conditional to check whether the current element in iteration is the first element or not (it checks the element at index - 1 and sees if that exists)
 		if (coords[index - 1]) {
-			//another conditional to check if the 'y' coordinate of the previous point is greater of lower than the the 'y' coordinate of current point(current element in iteration)
+			//another conditional to check if the 'y' coordinate of the previous point is greater or lower than the the 'y' coordinate of current point(current element in iteration)
 			if (coords[index].y >= coords[index - 1].y) {
 				// if the 'y' of current point is more/greater than that of previous point, i.e., current point is lower on canvas than previous point, then push the coordinate text by 30 pixels so that it doesn't overlap with the line
 				ctx.fillText(
-					`(${coords[index].x}, ${coords[index].y})`,
+					`(${coords[index].x / 5}, ${coords[index].y / 5})`,
 					coords[index].x - 50,
-					coords[index].y + 30
+					canvas.height - coords[index].y - 30
 				);
 			} else {
 				// else if the current point is higher on the canvas than the previous point, then pull the coordinate text up by 20 pixels to make it clear
 				ctx.fillText(
-					`(${coords[index].x}, ${coords[index].y})`,
+					`(${coords[index].x / 5}, ${coords[index].y / 5})`,
 					coords[index].x - 50,
-					coords[index].y - 20
+					canvas.height - coords[index].y + 30
 				);
 			}
 		} else {
@@ -86,11 +90,12 @@ function drawChart(coords) {
 
 			//else if the current element in iteration is the first element, then pull the coordinate text by 20 pixels
 			ctx.fillText(
-				`(${coords[index].x}, ${coords[index].y})`,
+				`(${coords[index].x / 5}, ${coords[index].y / 5})`,
 				coords[index].x - 50,
-				coords[index].y - 20
+				canvas.height - coords[index].y - 30
 			);
 		}
 	}
+	//finally stroke the lines.
 	ctx.stroke();
 }
