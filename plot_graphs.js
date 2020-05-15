@@ -29,8 +29,9 @@ function fetchChartCoordinates(_responseEvent) {
 
 		//assigning the scaled coordinates(returned from scaleCoordinates function) to points variable
 		let points = scaleCoordinates(chartPoints.coordinates);
-
-		drawChart(points); //calling the drawChart function with the scaled points array as argument
+		let axisMargin = 60;
+		drawAxes(points, axisMargin);
+		drawChart(points, axisMargin); //calling the drawChart function with the scaled points array as argument
 	} else {
 		//if any error occurs, log the stutus and the ready state of AJAX call
 		console.log(`Status: ${this.status}; Ready state: ${this.readyState}`);
@@ -50,14 +51,14 @@ function scaleCoordinates(data) {
 }
 
 //the main function which actually draws the chart/graph
-function drawChart(coords) {
+function drawChart(coords, margin) {
 	ctx.beginPath(); //beginning the path
 	ctx.lineWidth = 5; //setting the linewidth
 	ctx.strokeStyle = chartPoints.lineCol; //setting stroke color
 
-	ctx.moveTo(0, canvas.height); // moving the pen to the middle-y position in canvas
+	ctx.moveTo(margin + 3, canvas.height - (margin + 3)); // moving the pen to the middle-y position in canvas
 
-	ctx.font = '17px Fira Code '; // setting the  and typeface
+	ctx.font = '15px Fira Code '; // setting the  and typeface
 	ctx.fillStyle = 'black'; // setting the font color
 
 	// iterating through coords array (containing scaled coordinates) and drawing line to each of the passed coordinate
@@ -65,7 +66,10 @@ function drawChart(coords) {
 		//*const index holds the index of the current element during iteration
 
 		// draws line to each of the coordinates passed
-		ctx.lineTo(coords[index].x, canvas.height - coords[index].y);
+		ctx.lineTo(
+			coords[index].x + margin,
+			canvas.height - (coords[index].y + margin)
+		);
 
 		// * conditional to check whether the current element in iteration is the first element or not (it checks the element at index - 1 and sees if that exists)
 		if (coords[index - 1]) {
@@ -74,15 +78,15 @@ function drawChart(coords) {
 				// if the 'y' of current point is more/greater than that of previous point, i.e., current point is lower on canvas than previous point, then push the coordinate text by 30 pixels so that it doesn't overlap with the line
 				ctx.fillText(
 					`(${coords[index].x / 5}, ${coords[index].y / 5})`,
-					coords[index].x - 50,
-					canvas.height - coords[index].y - 30
+					coords[index].x + margin - 37,
+					canvas.height - (coords[index].y + margin) - 20
 				);
 			} else {
 				// else if the current point is higher on the canvas than the previous point, then pull the coordinate text up by 20 pixels to make it clear
 				ctx.fillText(
 					`(${coords[index].x / 5}, ${coords[index].y / 5})`,
-					coords[index].x - 50,
-					canvas.height - coords[index].y + 30
+					coords[index].x + margin - 37,
+					canvas.height - (coords[index].y + margin) + 20
 				);
 			}
 		} else {
@@ -91,11 +95,26 @@ function drawChart(coords) {
 			//else if the current element in iteration is the first element, then pull the coordinate text by 20 pixels
 			ctx.fillText(
 				`(${coords[index].x / 5}, ${coords[index].y / 5})`,
-				coords[index].x - 50,
-				canvas.height - coords[index].y - 30
+				coords[index].x + margin - 37,
+				canvas.height - (coords[index].y + margin) - 20
 			);
 		}
 	}
 	//finally stroke the lines.
+	ctx.stroke();
+}
+
+function drawAxes(data, margin) {
+	ctx.fillStyle = 'black';
+	ctx.lineWidth = 3;
+	ctx.lineCap = 'round';
+	ctx.font = 'bold 20px Lucida Console Regular';
+
+	ctx.moveTo(margin, canvas.height - margin);
+	ctx.fillText('0', margin - 20, canvas.height - (margin - 20));
+	ctx.lineTo(margin, 40);
+	ctx.moveTo(margin, canvas.height - margin);
+	ctx.lineTo(canvas.width - 40, canvas.height - margin);
+
 	ctx.stroke();
 }
