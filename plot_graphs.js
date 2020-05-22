@@ -1,6 +1,6 @@
 // * Program to plot line charts on the basis of (x,y) coordinates supplied in JSON format
 // * Made by: Mehul Ambastha
-// * Last updated: 11-5-2020
+// * Last updated: 22-5-2020
 // ? NEXT: how to make this whole application object oriented?
 
 'use strict';
@@ -27,10 +27,11 @@ function fetchChartCoordinates(_responseEvent) {
 	if (this.status === 200 && this.readyState === 4) {
 		chartPoints.coordinates = JSON.parse(this.responseText); //parsing the JSON and storing it in coordinates property of chartPoints
 
-		//assigning the scaled coordinates(returned from scaleCoordinates function) to points variable
-		let points = scaleCoordinates(chartPoints.coordinates);
-		let axisMargin = 60;
-		drawAxes(points, axisMargin);
+		let points = scaleCoordinates(chartPoints.coordinates); //assigning the scaled coordinates(returned from scaleCoordinates function) to points variable
+
+		let axisMargin = 50; //this variable holds the margin of the whole chart from the left and bottom of the canvas
+
+		drawAxes(points, axisMargin); //drawAxes() draws the x and y axes along with scale intervals
 		drawChart(points, axisMargin); //calling the drawChart function with the scaled points array as argument
 	} else {
 		//if any error occurs, log the stutus and the ready state of AJAX call
@@ -38,7 +39,7 @@ function fetchChartCoordinates(_responseEvent) {
 	}
 }
 
-//This function scales the coordinates by a suitable scale factor(currently it just scales it 5 times)
+//This function scales the coordinates by a suitable scale factor(currently it just scales it 5 times and returns it)
 function scaleCoordinates(data) {
 	// TODO: Analyse the arguments and then decide a suitable scale factor and then scale the coordinates
 
@@ -77,14 +78,14 @@ function drawChart(coords, margin) {
 			if (coords[index].y >= coords[index - 1].y) {
 				// if the 'y' of current point is more/greater than that of previous point, i.e., current point is lower on canvas than previous point, then push the coordinate text by 30 pixels so that it doesn't overlap with the line
 				ctx.fillText(
-					`(${coords[index].x / 5}, ${coords[index].y / 5})`,
+					`(${coords[index].x / 5},${coords[index].y / 5})`,
 					coords[index].x + margin - 37,
-					canvas.height - (coords[index].y + margin) - 20
+					canvas.height - (coords[index].y + margin) - 12
 				);
 			} else {
 				// else if the current point is higher on the canvas than the previous point, then pull the coordinate text up by 20 pixels to make it clear
 				ctx.fillText(
-					`(${coords[index].x / 5}, ${coords[index].y / 5})`,
+					`(${coords[index].x / 5},${coords[index].y / 5})`,
 					coords[index].x + margin - 37,
 					canvas.height - (coords[index].y + margin) + 20
 				);
@@ -96,25 +97,51 @@ function drawChart(coords, margin) {
 			ctx.fillText(
 				`(${coords[index].x / 5}, ${coords[index].y / 5})`,
 				coords[index].x + margin - 37,
-				canvas.height - (coords[index].y + margin) - 20
+				canvas.height - (coords[index].y + margin) - 12
 			);
 		}
 	}
-	//finally stroke the lines.
+	//finally stroke/render the lines.
 	ctx.stroke();
 }
 
+//this function draws the x-y axes and renders the scale intervals on the axes
 function drawAxes(data, margin) {
-	ctx.fillStyle = 'black';
-	ctx.lineWidth = 3;
-	ctx.lineCap = 'round';
-	ctx.font = 'bold 20px Lucida Console Regular';
+	ctx.fillStyle = 'black'; //the color of the text
+	ctx.lineWidth = 3; //width of the axes(lines)
+	ctx.lineCap = 'round'; //linecap-round so that it looks smooth
 
-	ctx.moveTo(margin, canvas.height - margin);
-	ctx.fillText('0', margin - 20, canvas.height - (margin - 20));
-	ctx.lineTo(margin, 40);
-	ctx.moveTo(margin, canvas.height - margin);
-	ctx.lineTo(canvas.width - 40, canvas.height - margin);
+	ctx.moveTo(margin, canvas.height - margin); //move to the origin of the chart
 
-	ctx.stroke();
+	ctx.font = 'bold 20px Arial'; //specific font settings for the 'o' of origin
+	ctx.fillText('O', margin - 20, canvas.height - (margin - 20)); //render 'O' at origin(subtracting 20 from both x and y positions so that it doesn't overlap with the axes)
+
+	ctx.lineTo(margin, margin); //draws the y axis
+	ctx.moveTo(margin, canvas.height - margin); //move to origin again
+	ctx.lineTo(canvas.width - margin, canvas.height - margin); //draw the x axis
+	ctx.font = 'bold 15px Lucida Console Regular'; //The best default font out there, you know!
+	ctx.stroke(); //stroke the axes
+
+	let axisMark = 10; // this is the number displayed alongside the x and y axes (the unit marks on the axes)
+	let scaleInterval = 50; //this is the distance between successive axisMarks
+
+	// *this loop creates the axis marks on both the axes
+	for (var i = 0; i <= 17; i++) {
+		// for the y axis
+		ctx.fillText(
+			`${axisMark}`,
+			margin - 30, //  x-position is margin-30 so that it doesn't overlap with the y axis line
+			canvas.height - (margin + scaleInterval) // y position of axis mark is at every scaleInterval
+		);
+
+		ctx.fillText(
+			`${axisMark}`,
+			margin + (scaleInterval - 7.5), //so that the actual point (at every scale interval)is axisMark's number's mid-point
+			canvas.height - (margin - 25) // moving the axis mark below the x axis
+		);
+
+		axisMark += 10; //incrementing the axisMark (like 10, 20, 30)
+		scaleInterval += 50; //incrementing scaleInterval so that every successive axisMark is 50 pixels ahead of the previous mark
+		console.log(axisMark); //testing
+	}
 }
